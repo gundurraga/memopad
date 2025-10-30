@@ -1,0 +1,102 @@
+{
+  "name": "memopad",
+  "displayName": "Memopad",
+  "description": "VS Code extension to save notes and prompts in the sidebar for quick access",
+  "version": "0.0.1",
+  "publisher": "gundurraga",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gundurraga/memopad"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "notes",
+    "memo",
+    "snippets",
+    "clipboard",
+    "prompts"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "memopad",
+          "title": "Memopad",
+          "icon": "$(note)"
+        }
+      ]
+    },
+    "views": {
+      "memopad": [
+        {
+          "id": "memopadNotes",
+          "name": "Notes"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "memopad.addNote",
+        "title": "Add Note",
+        "icon": "$(add)"
+      },
+      {
+        "command": "memopad.copyNote",
+        "title": "Copy Note",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "memopad.deleteNote",
+        "title": "Delete Note",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "memopad.renameNote",
+        "title": "Rename Note",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "memopad.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "memopad.addNote",
+          "when": "view == memopadNotes",
+          "group": "navigation"
+        },
+        {
+          "command": "memopad.refresh",
+          "when": "view == memopadNotes",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "memopad.copyNote",
+          "when": "view == memopadNotes",
+          "group": "inline"
+        },
+        {
+          "command": "memopad.renameNote",
+          "when": "view == memopadNotes"
+        },
+        {
+          "command": "memopad.deleteNote",
+          "when": "view == memopadNotes"
+        }
+      ]
+    }
+  }
+}
