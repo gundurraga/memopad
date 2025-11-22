@@ -1,10 +1,10 @@
 {
   "name": "memopad",
   "displayName": "Memopad",
-  "description": "VS Code extension to save notes and prompts in the sidebar for quick access",
-  "version": "0.0.2",
+  "description": "Save and organize notes in the sidebar for quick access",
+  "version": "0.0.4",
   "publisher": "gundurraga",
-  "icon": "white_on_white.png",
+  "icon": "logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/gundurraga/memopad"
@@ -39,7 +39,8 @@
       "memopad": [
         {
           "id": "memopadNotes",
-          "name": "Notes"
+          "name": "Notes",
+          "canMoveViews": true
         }
       ]
     },
@@ -50,18 +51,23 @@
         "icon": "$(add)"
       },
       {
+        "command": "memopad.addFolder",
+        "title": "Add Folder",
+        "icon": "$(new-folder)"
+      },
+      {
         "command": "memopad.copyNote",
         "title": "Copy Note",
         "icon": "$(copy)"
       },
       {
-        "command": "memopad.deleteNote",
-        "title": "Delete Note",
+        "command": "memopad.deleteItem",
+        "title": "Delete",
         "icon": "$(trash)"
       },
       {
-        "command": "memopad.renameNote",
-        "title": "Rename Note",
+        "command": "memopad.renameItem",
+        "title": "Rename",
         "icon": "$(edit)"
       },
       {
@@ -75,26 +81,39 @@
         {
           "command": "memopad.addNote",
           "when": "view == memopadNotes",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "memopad.addFolder",
+          "when": "view == memopadNotes",
+          "group": "navigation@2"
         },
         {
           "command": "memopad.refresh",
           "when": "view == memopadNotes",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
         {
+          "command": "memopad.addNote",
+          "when": "view == memopadNotes && viewItem == folder"
+        },
+        {
+          "command": "memopad.addFolder",
+          "when": "view == memopadNotes && viewItem == folder"
+        },
+        {
           "command": "memopad.copyNote",
-          "when": "view == memopadNotes",
+          "when": "view == memopadNotes && viewItem == note",
           "group": "inline"
         },
         {
-          "command": "memopad.renameNote",
+          "command": "memopad.renameItem",
           "when": "view == memopadNotes"
         },
         {
-          "command": "memopad.deleteNote",
+          "command": "memopad.deleteItem",
           "when": "view == memopadNotes"
         }
       ]
