@@ -23,36 +23,111 @@ class NotesProvider {
         return element;
     }
 
-    getChildren() {
-        const files = fs.readdirSync(NOTES_DIR);
-        return files.map(file => {
-            const filePath = path.join(NOTES_DIR, file);
-            const item = new vscode.TreeItem(file, vscode.TreeItemCollapsibleState.None);
-            item.command = {
-                command: 'vscode.open',
-                title: 'Open Note',
-                arguments: [vscode.Uri.file(filePath)]
-            };
-            item.contextValue = 'note';
-            item.resourceUri = vscode.Uri.file(filePath);
-            return item;
-        });
+    getParent(element) {
+        if (!element || !element.resourceUri) return null;
+        const parentPath = path.dirname(element.resourceUri.fsPath);
+        if (parentPath === NOTES_DIR) return null;
+
+        const parentName = path.basename(parentPath);
+        const item = new vscode.TreeItem(parentName, vscode.TreeItemCollapsibleState.Collapsed);
+        item.contextValue = 'folder';
+        item.resourceUri = vscode.Uri.file(parentPath);
+        return item;
     }
+
+    getChildren(element) {
+        const directory = element ? element.resourceUri.fsPath : NOTES_DIR;
+
+        try {
+            const items = fs.readdirSync(directory, { withFileTypes: true });
+            return items.map(item => {
+                const itemPath = path.join(directory, item.name);
+                const isDirectory = item.isDirectory();
+
+                const treeItem = new vscode.TreeItem(
+                    item.name,
+                    isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
+                );
+
+                if (isDirectory) {
+                    treeItem.contextValue = 'folder';
+                    treeItem.iconPath = new vscode.ThemeIcon('folder');
+                } else {
+                    treeItem.command = {
+                        command: 'vscode.open',
+                        title: 'Open Note',
+                        arguments: [vscode.Uri.file(itemPath)]
+                    };
+                    treeItem.contextValue = 'note';
+                    treeItem.iconPath = new vscode.ThemeIcon('file');
+                }
+
+                treeItem.resourceUri = vscode.Uri.file(itemPath);
+                return treeItem;
+            }).sort((a, b) => {
+                if (a.contextValue === 'folder' && b.contextValue === 'note') return -1;
+                if (a.contextValue === 'note' && b.contextValue === 'folder') return 1;
+                return a.label.localeCompare(b.label);
+            });
+        } catch (err) {
+            return [];
+        }
+    }
+}
+
+function getTargetDirectory(item) {
+    return item?.contextValue === 'folder' ? item.resourceUri.fsPath : NOTES_DIR;
 }
 
 function activate(context) {
     const notesProvider = new NotesProvider();
-    vscode.window.registerTreeDataProvider('memopadNotes', notesProvider);
+    const treeView = vscode.window.createTreeView('memopadNotes', {
+        treeDataProvider: notesProvider,
+        dragAndDropController: {
+            dropMimeTypes: ['application/vnd.code.tree.memopadNotes'],
+            dragMimeTypes: ['application/vnd.code.tree.memopadNotes'],
+            handleDrag(source, dataTransfer) {
+                dataTransfer.set('application/vnd.code.tree.memopadNotes', new vscode.DataTransferItem(source));
+            },
+            handleDrop(target, dataTransfer) {
+                const transferItem = dataTransfer.get('application/vnd.code.tree.memopadNotes');
+                if (!transferItem) return;
+
+                const source = transferItem.value;
+                if (!source || source.length === 0) return;
+
+                const sourceItem = source[0];
+                const targetDir = getTargetDirectory(target);
+                const sourcePath = sourceItem.resourceUri.fsPath;
+                const fileName = path.basename(sourcePath);
+                const newPath = path.join(targetDir, fileName);
+
+                if (sourcePath === newPath) return;
+
+                if (fs.existsSync(newPath)) {
+                    vscode.window.showErrorMessage(`${fileName} already exists in target location`);
+                    return;
+                }
+
+                try {
+                    fs.renameSync(sourcePath, newPath);
+                    notesProvider.refresh();
+                } catch (err) {
+                    vscode.window.showErrorMessage(`Failed to move: ${err.message}`);
+                }
+            }
+        }
+    });
 
     const watcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(NOTES_DIR, '*')
+        new vscode.RelativePattern(NOTES_DIR, '**/*')
     );
 
     watcher.onDidCreate(() => notesProvider.refresh());
     watcher.onDidDelete(() => notesProvider.refresh());
     watcher.onDidChange(() => notesProvider.refresh());
 
-    let addNote = vscode.commands.registerCommand('memopad.addNote', async () => {
+    let addNote = vscode.commands.registerCommand('memopad.addNote', async (item) => {
         const name = await vscode.window.showInputBox({
             prompt: 'Enter note name',
             placeHolder: 'e.g., code-review.md'
@@ -60,7 +135,8 @@ function activate(context) {
 
         if (!name) return;
 
-        const filePath = path.join(NOTES_DIR, name);
+        const parentDir = getTargetDirectory(item);
+        const filePath = path.join(parentDir, name);
 
         if (fs.existsSync(filePath)) {
             vscode.window.showErrorMessage(`${name} already exists`);
@@ -77,6 +153,31 @@ function activate(context) {
         }
     });
 
+    let addFolder = vscode.commands.registerCommand('memopad.addFolder', async (item) => {
+        const name = await vscode.window.showInputBox({
+            prompt: 'Enter folder name',
+            placeHolder: 'e.g., work, personal, templates'
+        });
+
+        if (!name) return;
+
+        const parentDir = getTargetDirectory(item);
+        const folderPath = path.join(parentDir, name);
+
+        if (fs.existsSync(folderPath)) {
+            vscode.window.showErrorMessage(`${name} already exists`);
+            return;
+        }
+
+        try {
+            fs.mkdirSync(folderPath, { recursive: true });
+            notesProvider.refresh();
+            vscode.window.showInformationMessage(`Folder created: ${name}`);
+        } catch (err) {
+            vscode.window.showErrorMessage(`Failed to create folder: ${err.message}`);
+        }
+    });
+
     let copyNote = vscode.commands.registerCommand('memopad.copyNote', async (item) => {
         try {
             const content = fs.readFileSync(item.resourceUri.fsPath, 'utf8');
@@ -87,31 +188,38 @@ function activate(context) {
         }
     });
 
-    let deleteNote = vscode.commands.registerCommand('memopad.deleteNote', async (item) => {
+    let deleteItem = vscode.commands.registerCommand('memopad.deleteItem', async (item) => {
+        const itemType = item.contextValue === 'folder' ? 'folder' : 'note';
         const result = await vscode.window.showWarningMessage(
-            `Delete ${item.label}?`,
+            `Delete ${itemType} ${item.label}?`,
             'Delete', 'Cancel'
         );
 
         if (result === 'Delete') {
             try {
-                fs.unlinkSync(item.resourceUri.fsPath);
+                if (item.contextValue === 'folder') {
+                    fs.rmSync(item.resourceUri.fsPath, { recursive: true, force: true });
+                } else {
+                    fs.unlinkSync(item.resourceUri.fsPath);
+                }
                 notesProvider.refresh();
             } catch (err) {
-                vscode.window.showErrorMessage(`Failed to delete note: ${err.message}`);
+                vscode.window.showErrorMessage(`Failed to delete ${itemType}: ${err.message}`);
             }
         }
     });
 
-    let renameNote = vscode.commands.registerCommand('memopad.renameNote', async (item) => {
+    let renameItem = vscode.commands.registerCommand('memopad.renameItem', async (item) => {
+        const itemType = item.contextValue === 'folder' ? 'folder' : 'note';
         const newName = await vscode.window.showInputBox({
-            prompt: 'Enter new name',
+            prompt: `Enter new ${itemType} name`,
             value: item.label
         });
 
         if (!newName || newName === item.label) return;
 
-        const newPath = path.join(NOTES_DIR, newName);
+        const parentDir = path.dirname(item.resourceUri.fsPath);
+        const newPath = path.join(parentDir, newName);
 
         if (fs.existsSync(newPath)) {
             vscode.window.showErrorMessage(`${newName} already exists`);
@@ -122,7 +230,7 @@ function activate(context) {
             fs.renameSync(item.resourceUri.fsPath, newPath);
             notesProvider.refresh();
         } catch (err) {
-            vscode.window.showErrorMessage(`Failed to rename note: ${err.message}`);
+            vscode.window.showErrorMessage(`Failed to rename ${itemType}: ${err.message}`);
         }
     });
 
@@ -130,7 +238,7 @@ function activate(context) {
         notesProvider.refresh();
     });
 
-    context.subscriptions.push(addNote, copyNote, deleteNote, renameNote, refresh, watcher);
+    context.subscriptions.push(addNote, addFolder, copyNote, deleteItem, renameItem, refresh, watcher);
 }
 
 function deactivate() {}
