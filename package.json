@@ -1,8 +1,8 @@
 {
   "name": "memopad",
   "displayName": "Memopad",
-  "description": "VS Code extension to save notes and prompts in the sidebar for quick access",
-  "version": "0.0.3",
+  "description": "Save and organize notes in the sidebar for quick access",
+  "version": "0.0.4",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
