@@ -279,7 +279,7 @@ function activate(context) {
 
     let search = vscode.commands.registerCommand('memopad.search', async () => {
         const quickPick = vscode.window.createQuickPick();
-        quickPick.placeholder = 'Search in notes...';
+        quickPick.placeholder = 'Search in memopad...';
         quickPick.matchOnDescription = true;
 
         quickPick.onDidChangeValue(value => {
