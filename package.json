@@ -2,7 +2,7 @@
   "name": "memopad",
   "displayName": "Memopad",
   "description": "Save and organize notes in the sidebar for quick access",
-  "version": "0.0.4",
+  "version": "1.0.5",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
@@ -71,25 +71,25 @@
         "icon": "$(edit)"
       },
       {
-        "command": "memopad.refresh",
-        "title": "Refresh",
-        "icon": "$(refresh)"
+        "command": "memopad.search",
+        "title": "Search Notes",
+        "icon": "$(search)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "memopad.addNote",
+          "command": "memopad.search",
           "when": "view == memopadNotes",
           "group": "navigation@1"
         },
         {
-          "command": "memopad.addFolder",
+          "command": "memopad.addNote",
           "when": "view == memopadNotes",
           "group": "navigation@2"
         },
         {
-          "command": "memopad.refresh",
+          "command": "memopad.addFolder",
           "when": "view == memopadNotes",
           "group": "navigation@3"
         }
