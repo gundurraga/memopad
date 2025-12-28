@@ -2,7 +2,7 @@
   "name": "memopad",
   "displayName": "Memopad",
   "description": "Save and organize notes in the sidebar for quick access",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
