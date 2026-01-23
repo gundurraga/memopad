@@ -1,8 +1,8 @@
 {
   "name": "memopad",
   "displayName": "Memopad",
-  "description": "Save and organize notes in the sidebar for quick access",
-  "version": "1.0.6",
+  "description": "Dead simple notes in VS Code. Plain text, local, no lock-in. Prompts, snippets, whatever you need.",
+  "version": "1.0.7",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
@@ -14,14 +14,19 @@
     "vscode": "^1.80.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Programming Languages"
   ],
   "keywords": [
     "notes",
-    "memo",
+    "prompts",
     "snippets",
-    "clipboard",
-    "prompts"
+    "sidebar",
+    "local",
+    "plain-text",
+    "ai-prompts",
+    "notepad",
+    "memo"
   ],
   "activationEvents": [],
   "main": "./extension.js",
