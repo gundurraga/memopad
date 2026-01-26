@@ -2,11 +2,11 @@
 
 Dead simple notes in VS Code.
 
-![Memopad sidebar](screenshot.png)
-
 Plain text files. Local storage. No database, no cloud, no lock-in. Your notes live in `~/.memopad` as regular files you can grep, backup, or sync however you want.
 
 Use it for prompts, snippets, quick references, meeting notes. Whatever you need, right in your sidebar while you code.
+
+![Memopad sidebar](screenshot.png)
 
 ## Why This Exists
 

@@ -2,7 +2,7 @@
   "name": "memopad",
   "displayName": "Memopad",
   "description": "Dead simple notes in VS Code. Plain text, local, no lock-in. Prompts, snippets, whatever you need.",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
