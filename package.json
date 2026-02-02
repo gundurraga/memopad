@@ -1,8 +1,8 @@
 {
   "name": "memopad",
-  "displayName": "Memopad",
+  "displayName": "memopad",
   "description": "Notes where you code. No new window, no context switch. Plain text files you own.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
@@ -14,8 +14,7 @@
     "vscode": "^1.80.0"
   },
   "categories": [
-    "Other",
-    "Programming Languages"
+    "Machine Learning"
   ],
   "keywords": [
     "notes",
@@ -35,7 +34,7 @@
       "activitybar": [
         {
           "id": "memopad",
-          "title": "Memopad",
+          "title": "memopad",
           "icon": "$(note)"
         }
       ]

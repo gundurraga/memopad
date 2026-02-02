@@ -1,10 +1,10 @@
-# Memopad
+# memopad
 
 Notes where you code.
 
 No new window. No context switch. No friction. Your notes live in the VS Code sidebar, one click from your cursor.
 
-![Memopad sidebar](screenshot.png)
+![memopad sidebar](screenshot.png)
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Every note app pulls you out of flow. Notion, Obsidian, Apple Notes—separate w
 
 ## The Solution
 
-Memopad keeps your notes in peripheral vision. Open. Copy. Paste. Back to coding in two seconds.
+memopad keeps your notes in peripheral vision. Open. Copy. Paste. Back to coding in two seconds.
 
 AI prompts you reuse. SQL queries you forget. That regex. Standup notes. All of it, right there.
 
@@ -31,7 +31,7 @@ No database. No cloud. No lock-in. Regular files you can grep, backup, git, or s
 
 ## Get Started
 
-1. Click the Memopad icon in the activity bar
+1. Click the memopad icon in the activity bar
 2. Create notes and folders with `+`
 3. Drag to organize
 4. Right-click for more
