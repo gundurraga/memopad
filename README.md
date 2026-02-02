@@ -1,36 +1,22 @@
 # Memopad
 
-Dead simple notes in VS Code.
+Notes where you code.
 
-Plain text files. Local storage. No database, no cloud, no lock-in. Your notes live in `~/.memopad` as regular files you can grep, backup, or sync however you want.
-
-Use it for prompts, snippets, quick references, meeting notes. Whatever you need, right in your sidebar while you code.
+No new window. No context switch. No friction. Your notes live in the VS Code sidebar, one click from your cursor.
 
 ![Memopad sidebar](screenshot.png)
 
-## Why This Exists
+## The Problem
 
-Note-taking apps want you to switch context. Notion, Obsidian, Apple Notes - all separate windows. VS Code snippets are for code, not text.
+Every note app pulls you out of flow. Notion, Obsidian, Apple Notes—separate windows, separate headspace. By the time you find what you need, you've lost your thread.
 
-Memopad puts your notes where you work. One click in the sidebar. Copy, paste, done.
+## The Solution
 
-## Features
+Memopad keeps your notes in peripheral vision. Open. Copy. Paste. Back to coding in two seconds.
 
-- **Sidebar access** - Notes always visible, one click away
-- **Folders** - Organize however makes sense to you
-- **Drag and drop** - Move things around
-- **Search** - Find anything fast
-- **Plain text** - Just `.md` and `.txt` files, nothing proprietary
+AI prompts you reuse. SQL queries you forget. That regex. Standup notes. All of it, right there.
 
-## Getting Started
-
-1. Click the Memopad icon in the activity bar
-2. Hit `+` to add notes or folders
-3. Click any note to open and edit
-4. Drag to reorganize
-5. Right-click for more options
-
-## Storage
+## Plain Text. Your Rules.
 
 ```
 ~/.memopad/
@@ -39,11 +25,16 @@ Memopad puts your notes where you work. One click in the sidebar. Copy, paste, d
     explain-this.md
   work/
     meeting-notes.md
-  personal/
-    ideas.txt
 ```
 
-Sync to Dropbox, iCloud, or a git repo. Back it up however you back up files.
+No database. No cloud. No lock-in. Regular files you can grep, backup, git, or sync however you want.
+
+## Get Started
+
+1. Click the Memopad icon in the activity bar
+2. Create notes and folders with `+`
+3. Drag to organize
+4. Right-click for more
 
 ## License
 
