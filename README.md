@@ -29,6 +29,14 @@ AI prompts you reuse. SQL queries you forget. That regex. Standup notes. All of 
 
 No database. No cloud. No lock-in. Regular files you can grep, backup, git, or sync however you want.
 
+## Back Up With Git
+
+Your notes are files. Files work with git.
+
+`cd ~/.memopad && git init && git remote add origin <repo>`. Push. Now your notes are versioned, backed up, and available on every machine. No sync service. No trust required. Just git.
+
+Break something? `git log`. New laptop? `git clone`. That's it.
+
 ## Get Started
 
 1. Click the memopad icon in the activity bar

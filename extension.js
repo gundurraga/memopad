@@ -39,7 +39,8 @@ class NotesProvider {
         const directory = element ? element.resourceUri.fsPath : NOTES_DIR;
 
         try {
-            const items = fs.readdirSync(directory, { withFileTypes: true });
+            const items = fs.readdirSync(directory, { withFileTypes: true })
+                .filter(item => !item.name.startsWith('.'));
             return items.map(item => {
                 const itemPath = path.join(directory, item.name);
                 const isDirectory = item.isDirectory();

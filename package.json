@@ -2,7 +2,7 @@
   "name": "memopad",
   "displayName": "memopad",
   "description": "Notes where you code. No new window, no context switch. Plain text files you own.",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
