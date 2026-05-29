@@ -2,7 +2,7 @@
   "name": "memopad",
   "displayName": "memopad",
   "description": "Notes where you code. No new window, no context switch. Plain text files you own.",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
@@ -65,6 +65,11 @@
         "icon": "$(copy)"
       },
       {
+        "command": "memopad.copyPath",
+        "title": "Copy Path",
+        "icon": "$(link)"
+      },
+      {
         "command": "memopad.deleteItem",
         "title": "Delete",
         "icon": "$(trash)"
@@ -111,6 +116,10 @@
           "command": "memopad.copyNote",
           "when": "view == memopadNotes && viewItem == note",
           "group": "inline"
+        },
+        {
+          "command": "memopad.copyPath",
+          "when": "view == memopadNotes"
         },
         {
           "command": "memopad.renameItem",

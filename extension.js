@@ -232,6 +232,11 @@ function activate(context) {
         }
     });
 
+    let copyPath = vscode.commands.registerCommand('memopad.copyPath', async (item) => {
+        await vscode.env.clipboard.writeText(item.resourceUri.fsPath);
+        vscode.window.showInformationMessage(`Copied path: ${item.resourceUri.fsPath}`);
+    });
+
     let deleteItem = vscode.commands.registerCommand('memopad.deleteItem', async (item) => {
         const itemType = item.contextValue === 'folder' ? 'folder' : 'note';
         const result = await vscode.window.showWarningMessage(
@@ -308,7 +313,7 @@ function activate(context) {
         quickPick.show();
     });
 
-    context.subscriptions.push(addNote, addFolder, copyNote, deleteItem, renameItem, search, watcher);
+    context.subscriptions.push(addNote, addFolder, copyNote, copyPath, deleteItem, renameItem, search, watcher);
 }
 
 function deactivate() {}

@@ -8,6 +8,7 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 - Drag and drop to move files and folders
 - Create, rename, delete notes and folders
 - Copy note contents to clipboard
+- Copy absolute path of files and folders to clipboard
 - Auto-refresh on file system changes
 
 ## Architecture
@@ -44,6 +45,7 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 - `memopad.addNote` - Create note (in root or selected folder)
 - `memopad.addFolder` - Create folder (supports nested folders)
 - `memopad.copyNote` - Copy note content to clipboard
+- `memopad.copyPath` - Copy absolute path of a file or folder to clipboard
 - `memopad.deleteItem` - Delete file or folder (recursive for folders)
 - `memopad.renameItem` - Rename file or folder
 - `memopad.refresh` - Manual refresh
