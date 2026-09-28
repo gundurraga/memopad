@@ -4,3 +4,6 @@
 .gitignore
 CLAUDE.md
 *.vsix
+
+.env
+.env.*
