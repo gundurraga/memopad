@@ -2,7 +2,7 @@
 .claude/
 .git/
 .gitignore
-CLAUDE.md
+AGENTS.md
 *.vsix
 
 .env
