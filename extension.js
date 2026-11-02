@@ -13,63 +13,71 @@ class NotesProvider {
     constructor() {
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        this.allExpanded = false;
+        // Changing ids makes VS Code forget each folder's open state and apply the default again
+        this.generation = 0;
     }
 
     refresh() {
         this._onDidChangeTreeData.fire();
     }
 
+    setAllExpanded(allExpanded) {
+        this.allExpanded = allExpanded;
+        this.generation++;
+        vscode.commands.executeCommand('setContext', 'memopad.allExpanded', allExpanded);
+        this.refresh();
+    }
+
     getTreeItem(element) {
         return element;
+    }
+
+    createItem(itemPath, isDirectory) {
+        const folderState = this.allExpanded
+            ? vscode.TreeItemCollapsibleState.Expanded
+            : vscode.TreeItemCollapsibleState.Collapsed;
+        const treeItem = new vscode.TreeItem(
+            path.basename(itemPath),
+            isDirectory ? folderState : vscode.TreeItemCollapsibleState.None
+        );
+        treeItem.id = `${this.generation}:${itemPath}`;
+        treeItem.resourceUri = vscode.Uri.file(itemPath);
+
+        if (isDirectory) {
+            treeItem.contextValue = 'folder';
+            treeItem.iconPath = new vscode.ThemeIcon('folder');
+        } else {
+            treeItem.command = {
+                command: 'vscode.open',
+                title: 'Open Note',
+                arguments: [treeItem.resourceUri]
+            };
+            treeItem.contextValue = 'note';
+            treeItem.iconPath = new vscode.ThemeIcon('file');
+        }
+        return treeItem;
     }
 
     getParent(element) {
         if (!element || !element.resourceUri) return null;
         const parentPath = path.dirname(element.resourceUri.fsPath);
         if (parentPath === NOTES_DIR) return null;
-
-        const parentName = path.basename(parentPath);
-        const item = new vscode.TreeItem(parentName, vscode.TreeItemCollapsibleState.Collapsed);
-        item.contextValue = 'folder';
-        item.resourceUri = vscode.Uri.file(parentPath);
-        return item;
+        return this.createItem(parentPath, true);
     }
 
     getChildren(element) {
         const directory = element ? element.resourceUri.fsPath : NOTES_DIR;
 
         try {
-            const items = fs.readdirSync(directory, { withFileTypes: true })
-                .filter(item => !item.name.startsWith('.'));
-            return items.map(item => {
-                const itemPath = path.join(directory, item.name);
-                const isDirectory = item.isDirectory();
-
-                const treeItem = new vscode.TreeItem(
-                    item.name,
-                    isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
-                );
-
-                if (isDirectory) {
-                    treeItem.contextValue = 'folder';
-                    treeItem.iconPath = new vscode.ThemeIcon('folder');
-                } else {
-                    treeItem.command = {
-                        command: 'vscode.open',
-                        title: 'Open Note',
-                        arguments: [vscode.Uri.file(itemPath)]
-                    };
-                    treeItem.contextValue = 'note';
-                    treeItem.iconPath = new vscode.ThemeIcon('file');
-                }
-
-                treeItem.resourceUri = vscode.Uri.file(itemPath);
-                return treeItem;
-            }).sort((a, b) => {
-                if (a.contextValue === 'folder' && b.contextValue === 'note') return -1;
-                if (a.contextValue === 'note' && b.contextValue === 'folder') return 1;
-                return a.label.localeCompare(b.label);
-            });
+            return fs.readdirSync(directory, { withFileTypes: true })
+                .filter(item => !item.name.startsWith('.'))
+                .map(item => this.createItem(path.join(directory, item.name), item.isDirectory()))
+                .sort((a, b) => {
+                    if (a.contextValue === 'folder' && b.contextValue === 'note') return -1;
+                    if (a.contextValue === 'note' && b.contextValue === 'folder') return 1;
+                    return a.label.localeCompare(b.label);
+                });
         } catch (err) {
             return [];
         }
@@ -313,7 +321,10 @@ function activate(context) {
         quickPick.show();
     });
 
-    context.subscriptions.push(addNote, addFolder, copyNote, copyPath, deleteItem, renameItem, search, watcher);
+    let expandAll = vscode.commands.registerCommand('memopad.expandAll', () => notesProvider.setAllExpanded(true));
+    let collapseAll = vscode.commands.registerCommand('memopad.collapseAll', () => notesProvider.setAllExpanded(false));
+
+    context.subscriptions.push(addNote, addFolder, copyNote, copyPath, deleteItem, renameItem, search, expandAll, collapseAll, watcher);
 }
 
 function deactivate() {}

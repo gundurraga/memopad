@@ -48,7 +48,7 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 - `memopad.copyPath` - Copy absolute path of a file or folder to clipboard
 - `memopad.deleteItem` - Delete file or folder (recursive for folders)
 - `memopad.renameItem` - Rename file or folder
-- `memopad.refresh` - Manual refresh
+- `memopad.expandAll` / `memopad.collapseAll` - Open or close every folder (one title bar button that toggles)
 
 **File Watcher** (`extension.js:123-128`)
 - Pattern: `**/*` (watches all nested files)
@@ -65,7 +65,7 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 To test the extension during development:
 
 ```bash
-code --extensionDevelopmentPath=/Users/gundurraga/Desktop/indie-dev/memopad
+code --extensionDevelopmentPath=/Users/gundurraga/Desktop/studio/OPEN-SOURCE/memopad
 ```
 
 This opens a new VS Code window with your local extension loaded. The marketplace version stays unchanged until you publish.
