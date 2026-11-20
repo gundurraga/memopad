@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { MOVE_UP, MOVE_DOWN, readOrder, sortEntries, moveItem, placeItemBefore, resetOrder, updateItemOrder } = require('./note-order');
 
 const NOTES_DIR = path.join(os.homedir(), '.memopad');
 
@@ -16,6 +17,7 @@ class NotesProvider {
         this.allExpanded = false;
         // Changing ids makes VS Code forget each folder's open state and apply the default again
         this.generation = 0;
+        this.orderErrors = new Set();
     }
 
     refresh() {
@@ -70,14 +72,19 @@ class NotesProvider {
         const directory = element ? element.resourceUri.fsPath : NOTES_DIR;
 
         try {
-            return fs.readdirSync(directory, { withFileTypes: true })
-                .filter(item => !item.name.startsWith('.'))
-                .map(item => this.createItem(path.join(directory, item.name), item.isDirectory()))
-                .sort((a, b) => {
-                    if (a.contextValue === 'folder' && b.contextValue === 'note') return -1;
-                    if (a.contextValue === 'note' && b.contextValue === 'folder') return 1;
-                    return a.label.localeCompare(b.label);
-                });
+            const entries = fs.readdirSync(directory, { withFileTypes: true });
+            let savedOrder;
+            try {
+                savedOrder = readOrder(directory);
+                this.orderErrors.delete(directory);
+            } catch (error) {
+                if (!this.orderErrors.has(directory)) {
+                    vscode.window.showErrorMessage(`Cannot load custom order. Showing alphabetical order: ${error.message}`);
+                    this.orderErrors.add(directory);
+                }
+            }
+            return sortEntries(entries, savedOrder)
+                .map(item => this.createItem(path.join(directory, item.name), item.isDirectory()));
         } catch (err) {
             return [];
         }
@@ -86,6 +93,69 @@ class NotesProvider {
 
 function getTargetDirectory(item) {
     return item?.contextValue === 'folder' ? item.resourceUri.fsPath : NOTES_DIR;
+}
+
+/** Updates ordering after a completed file operation.
+ * @param {string} sourcePath Original path. @param {string} [destinationPath] New path, if present.
+ * @returns {void} */
+function preserveItemOrder(sourcePath, destinationPath) {
+    try {
+        updateItemOrder(sourcePath, destinationPath);
+    } catch (error) {
+        vscode.window.showWarningMessage(`The file operation completed, but its custom order could not be updated: ${error.message}`);
+    }
+}
+
+/** Positions an item after a completed move while keeping failures visible.
+ * @param {string} itemPath Moved item. @param {string} targetPath Target note. @returns {void} */
+function positionMovedItem(itemPath, targetPath) {
+    try {
+        placeItemBefore(itemPath, targetPath);
+    } catch (error) {
+        vscode.window.showWarningMessage(`The item was moved, but its custom order could not be saved: ${error.message}`);
+    }
+}
+
+/** Reorders a sibling drop or moves an item to the target's folder.
+ * @param {import('vscode').TreeItem} sourceItem Dragged item. @param {import('vscode').TreeItem} [target] Drop target.
+ * @returns {boolean} Whether a move or reorder occurred. */
+function moveDroppedItem(sourceItem, target) {
+    const sourcePath = sourceItem.resourceUri.fsPath;
+    const targetPath = target?.resourceUri.fsPath;
+    if (sourcePath === targetPath) return false;
+    const targetIsNote = target?.contextValue === 'note';
+    const targetDirectory = targetIsNote ? path.dirname(targetPath) : getTargetDirectory(target);
+    const fileName = path.basename(sourcePath);
+    const destinationPath = path.join(targetDirectory, fileName);
+    if (sourcePath === destinationPath) {
+        return targetIsNote && placeItemBefore(sourcePath, targetPath);
+    }
+    if (targetDirectory === sourcePath || targetDirectory.startsWith(`${sourcePath}${path.sep}`)) {
+        throw new Error('A folder cannot be moved inside itself');
+    }
+    if (fs.existsSync(destinationPath)) {
+        throw new Error(`${fileName} already exists in target location`);
+    }
+    fs.renameSync(sourcePath, destinationPath);
+    preserveItemOrder(sourcePath, destinationPath);
+    if (targetIsNote) positionMovedItem(destinationPath, targetPath);
+    return true;
+}
+
+/** Registers an ordering action for the selected item and refreshes its folder.
+ * @param {NotesProvider} notesProvider Notes tree. @param {object} options Command, direction and tree view.
+ * @returns {import('vscode').Disposable} Registered command. */
+function registerOrderCommand(notesProvider, options) {
+    return vscode.commands.registerCommand(options.command, async item => {
+        if (!item?.resourceUri) return;
+        try {
+            if (!moveItem(item.resourceUri.fsPath, options.direction)) return;
+            notesProvider.refresh();
+            await options.treeView.reveal(item, { focus: true, select: true });
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to change order: ${error.message}`);
+        }
+    });
 }
 
 function getAllFiles(directory, files = []) {
@@ -148,22 +218,8 @@ function activate(context) {
                 const source = transferItem.value;
                 if (!source || source.length === 0) return;
 
-                const sourceItem = source[0];
-                const targetDir = getTargetDirectory(target);
-                const sourcePath = sourceItem.resourceUri.fsPath;
-                const fileName = path.basename(sourcePath);
-                const newPath = path.join(targetDir, fileName);
-
-                if (sourcePath === newPath) return;
-
-                if (fs.existsSync(newPath)) {
-                    vscode.window.showErrorMessage(`${fileName} already exists in target location`);
-                    return;
-                }
-
                 try {
-                    fs.renameSync(sourcePath, newPath);
-                    notesProvider.refresh();
+                    if (moveDroppedItem(source[0], target)) notesProvider.refresh();
                 } catch (err) {
                     vscode.window.showErrorMessage(`Failed to move: ${err.message}`);
                 }
@@ -259,6 +315,7 @@ function activate(context) {
                 } else {
                     fs.unlinkSync(item.resourceUri.fsPath);
                 }
+                preserveItemOrder(item.resourceUri.fsPath);
                 notesProvider.refresh();
             } catch (err) {
                 vscode.window.showErrorMessage(`Failed to delete ${itemType}: ${err.message}`);
@@ -285,6 +342,7 @@ function activate(context) {
 
         try {
             fs.renameSync(item.resourceUri.fsPath, newPath);
+            preserveItemOrder(item.resourceUri.fsPath, newPath);
             notesProvider.refresh();
         } catch (err) {
             vscode.window.showErrorMessage(`Failed to rename ${itemType}: ${err.message}`);
@@ -324,7 +382,23 @@ function activate(context) {
     let expandAll = vscode.commands.registerCommand('memopad.expandAll', () => notesProvider.setAllExpanded(true));
     let collapseAll = vscode.commands.registerCommand('memopad.collapseAll', () => notesProvider.setAllExpanded(false));
 
-    context.subscriptions.push(addNote, addFolder, copyNote, copyPath, deleteItem, renameItem, search, expandAll, collapseAll, watcher);
+    const orderCommands = [
+        { command: 'memopad.moveToTop', direction: 'top' },
+        { command: 'memopad.moveUp', direction: MOVE_UP },
+        { command: 'memopad.moveDown', direction: MOVE_DOWN }
+    ].map(options => registerOrderCommand(notesProvider, { ...options, treeView }));
+    const resetFolderOrder = vscode.commands.registerCommand('memopad.resetOrder', item => {
+        try {
+            resetOrder(getTargetDirectory(item));
+            notesProvider.refresh();
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to reset order: ${error.message}`);
+        }
+    });
+
+    context.subscriptions.push(addNote, addFolder, copyNote, copyPath, deleteItem, renameItem, search,
+        expandAll, collapseAll, ...orderCommands, resetFolderOrder, watcher, treeView,
+        notesProvider._onDidChangeTreeData);
 }
 
 function deactivate() {}

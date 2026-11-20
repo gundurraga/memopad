@@ -4,6 +4,10 @@
 .gitignore
 AGENTS.md
 *.vsix
+test/
+.test-order-*/
+.test-order-host-*/
+scripts/
 
 .env
 .env.*

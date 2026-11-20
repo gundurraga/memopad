@@ -9,12 +9,14 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 - Create, rename, delete notes and folders
 - Copy note contents to clipboard
 - Copy absolute path of files and folders to clipboard
+- Custom order within each folder using Move to Top, Move Up and Move Down
 - Auto-refresh on file system changes
 
 ## Architecture
 
 ### File Structure
-- `extension.js` - Main extension code (single file, CommonJS)
+- `extension.js` - Tree view and commands (CommonJS)
+- `note-order.js` - Persistent ordering and default sorting
 - `package.json` - VS Code extension manifest
 - `.vscode/launch.json` - Debug configuration
 
@@ -22,22 +24,26 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 - Location: `~/.memopad` (user home directory)
 - Format: Plain text files in hierarchical folder structure
 - No database, pure filesystem
+- Hidden `.memopad-order.json` files store custom order in each arranged folder
 
 ### Key Components
 
-**Helper Functions** (`extension.js:78-80`)
+**Helper Functions**
 - `getTargetDirectory(item)` - Returns target directory for operations (folder path or NOTES_DIR)
 - Used by: addNote, addFolder, drag and drop handler
 
-**NotesProvider Class** (`extension.js:12-76`)
+**NotesProvider Class**
 - Implements VS Code TreeDataProvider interface
 - `getChildren()` - Recursively loads folder contents using `fs.readdirSync` with `withFileTypes` option for performance
 - `getParent()` - Required for drag and drop support
-- Items sorted: folders first, then files (alphabetically)
+- Default order: folders first, then files alphabetically
+- Custom order overrides the default within that folder; new items follow arranged items
 
-**Drag and Drop** (`extension.js:84-118`)
+**Drag and Drop**
 - Uses VS Code's native drag and drop API
 - Handles moving files/folders between locations
+- Dropping onto a note places the item before it in that note's folder
+- Dropping onto a folder moves inside it; empty space moves to root
 - Validates target paths and prevents duplicates
 - Uses `getTargetDirectory()` helper for consistency
 
@@ -48,9 +54,11 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 - `memopad.copyPath` - Copy absolute path of a file or folder to clipboard
 - `memopad.deleteItem` - Delete file or folder (recursive for folders)
 - `memopad.renameItem` - Rename file or folder
+- `memopad.moveToTop` / `memopad.moveUp` / `memopad.moveDown` - Arrange siblings
+- `memopad.resetOrder` - Restore default order in a folder, or root from the view menu
 - `memopad.expandAll` / `memopad.collapseAll` - Open or close every folder (one title bar button that toggles)
 
-**File Watcher** (`extension.js:123-128`)
+**File Watcher**
 - Pattern: `**/*` (watches all nested files)
 - Auto-refreshes tree on create/delete/change
 
@@ -61,6 +69,9 @@ Memopad is a VS Code extension that saves notes and prompts in the sidebar for q
 3. **DRY principle** - Extracted `getTargetDirectory()` helper to reduce code duplication
 
 ## Testing Locally
+
+Run `scripts/test-all.sh` for syntax and filesystem behavior checks.
+Add `--e2e` for real VS Code commands in a disposable profile with isolated notes.
 
 To test the extension during development:
 
@@ -83,7 +94,7 @@ This opens a new VS Code window with your local extension loaded. The marketplac
 - Use `npm run lint` for linting
 - Never commit without explicit user request
 - Avoid disabling linter rules
-- Branch naming: `feature/`, `fix/`, `refactor/`, `docs/` prefixes (e.g., `feature/add-folders`)
+- Work on `main` unless the user requests a branch
 
 ## Publishing
 

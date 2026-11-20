@@ -44,6 +44,19 @@ Break something? `git log`. New laptop? `git clone`. That's it.
 3. Drag to organize
 4. Right-click for more
 
+## Put Important Notes First
+
+Drag an item onto a note to place it before that note. Drop onto a folder to move
+inside it, or onto empty space to move to the top level.
+You can also right-click and choose **Move to Top**, **Move Up**, or **Move Down**.
+Each folder remembers its own order. New items appear after the items you've arranged.
+
+To restore folders first and alphabetical order, right-click the folder and choose
+**Reset Folder Order**. For the top level, use the Notes view's `...` menu.
+
+Custom order is saved in a hidden `.memopad-order.json` file inside each folder you
+arrange. Include these files in your Git backups to keep your order on another machine.
+
 ## License
 
 MIT

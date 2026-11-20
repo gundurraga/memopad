@@ -2,7 +2,7 @@
   "name": "memopad",
   "displayName": "memopad",
   "description": "Notes where you code. No new window, no context switch. Plain text files you own.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "publisher": "gundurraga",
   "icon": "logo.png",
   "repository": {
@@ -29,6 +29,11 @@
   ],
   "activationEvents": [],
   "main": "./extension.js",
+  "scripts": {
+    "lint": "node --check extension.js && node --check note-order.js && node --check test/ordering.test.js && node --check scripts/test-host.js && node --check test/extension-host.js",
+    "test": "node --test test/*.test.js",
+    "test:host": "node scripts/test-host.js"
+  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -93,6 +98,26 @@
         "command": "memopad.collapseAll",
         "title": "Collapse All Folders",
         "icon": "$(collapse-all)"
+      },
+      {
+        "command": "memopad.moveToTop",
+        "title": "Move to Top",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "memopad.moveUp",
+        "title": "Move Up",
+        "icon": "$(chevron-up)"
+      },
+      {
+        "command": "memopad.moveDown",
+        "title": "Move Down",
+        "icon": "$(chevron-down)"
+      },
+      {
+        "command": "memopad.resetOrder",
+        "title": "Reset Folder Order",
+        "icon": "$(list-ordered)"
       }
     ],
     "menus": {
@@ -121,6 +146,11 @@
           "command": "memopad.collapseAll",
           "when": "view == memopadNotes && memopad.allExpanded",
           "group": "navigation@4"
+        },
+        {
+          "command": "memopad.resetOrder",
+          "when": "view == memopadNotes",
+          "group": "order"
         }
       ],
       "view/item/context": [
@@ -148,6 +178,26 @@
         {
           "command": "memopad.deleteItem",
           "when": "view == memopadNotes"
+        },
+        {
+          "command": "memopad.moveToTop",
+          "when": "view == memopadNotes",
+          "group": "order@1"
+        },
+        {
+          "command": "memopad.moveUp",
+          "when": "view == memopadNotes",
+          "group": "order@2"
+        },
+        {
+          "command": "memopad.moveDown",
+          "when": "view == memopadNotes",
+          "group": "order@3"
+        },
+        {
+          "command": "memopad.resetOrder",
+          "when": "view == memopadNotes && viewItem == folder",
+          "group": "order@4"
         }
       ]
     }
